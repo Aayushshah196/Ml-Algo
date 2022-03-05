@@ -81,7 +81,7 @@ class NeuralNet:
             layer.getweights()
 
     def summary(self):
-        table = prettytable.PrettyTable()
+        table = PrettyTable()
         
         table.field_names = ["Layer No.", "Layer Name", "Layer Size", "Trainable Parameters", "Weights", "Bias"]
 
@@ -91,7 +91,7 @@ class NeuralNet:
 
         print(table)
 
-#shape of X = (n, m) => n=no of axes, m=no. of examples
+# shape of X = (n, m) => n=no of axes, m=no. of examples
 # layer_size, input_shape=None, activation=ReLU, optimizer=GradientDescent)
 # optimizer, metrics
 if __name__ == "__main__":

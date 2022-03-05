@@ -1,7 +1,7 @@
 import numpy as np
 
-class GradientDescent:
 
+class GradientDescent:
 	def __init__(self, learning_rate=0.000009):
 		self.learning_rate = learning_rate
 		self.count = 0
@@ -10,51 +10,125 @@ class GradientDescent:
 		print(self.learning_rate)
 		print(self.count)
 
-	def update(self, W, dW):
+	def update_weights(self, W, dW):
 		self.count += 1
 		# print("Updating parameters")
 		if W.shape != dW.shape:
 			print("unmatched shape of parameters")
-			pass
-		if(self.count%10000==0):
-			self.learning_rate = self.learning_rate/5.0
-		W = W - self.learning_rate*dW
-		return W
 
-# class GradientDescent:
-# 	def __init__(self, learning_rate=0.001, b1=0.9, b2=0.999):
-# 		self.learning_rate = learning_rate
-# 		self.eps = 1e-8
-# 		self.m = None
-# 		self.v = None
-# 		# Decay rates
-# 		self.b1 = b1
-# 		self.count = 0
-# 		self.b2 = b2
+		return W - self.learning_rate*dW
 
-# 	def set_learningrate(self, rate):
-# 		self.learning_rate = rate 
+	def update_bias(self, b, db):
+		self.count += 1
+		# print("Updating parameters")
+		if b.shape != db.shape:
+			print("unmatched shape of parameters")
+			
+		return b - self.learning_rate*db
 
-# 	def update(self, w, dw):
-# 		self.count += 1
-# 	# If not initialized
-# 		if self.m is None:
-# 			self.m = np.zeros(np.shape(dw))
-# 			self.v = np.zeros(np.shape(dw))
 
-# 		self.m = self.b1 * self.m + (1 - self.b1) * dw
-# 		self.v = self.b2 * self.v + (1 - self.b2) * np.power(dw, 2)
 
-# 		m_hat = self.m / (1 - self.b1)
-# 		v_hat = self.v / (1 - self.b2)
+class Momentum:
+	"""
+		vdw - the exponentially weighted average of past gradients
+		beta - hyperparameter to be tuned
+		dW - cost gradient with respect to current layer
+		W - the weight matrix (parameter to be updated)
+		ϵ(0.000005) - very small value to avoid dividing by zero
+	"""
+	def __init__(self, beta, learning_rate=0.0000009):
+		self.learning_rate = learning_rate
+		self.beta = beta
+		self.vdw = None
+		self.vdb = None
 
-# 		self.w_updt = self.learning_rate * m_hat / (np.sqrt(v_hat) + self.eps)
 
-# 		return w - self.w_updt
+	def update_weights(self, W, dW):
+		if (self.vdw==None):
+			self.vdw = np.zeros_like(W)
 
-# 	def getparams(self):
-# 		print(self.learning_rate)
-# 		print(self.count)
+		self.vdw = self.beat*self.vdw + (1-self.beta)*dW
 
-# class Adam:
-# 	self.
+	def update_bias(self, b, db):
+		if (self.vdb==None):
+			self.vdb = np.zeros_like(b)
+
+		self.vdb = self.beat*self.vdb + (1-self.beta)*db
+
+
+
+class RMSProp:
+	"""
+		sdw - the exponentially weighted average of past squares of gradients
+		beta - hyperparameter to be tuned
+		dW - cost gradient with respect to current layer
+		W - the weight matrix (parameter to be updated)
+		ϵ(0.000005) - very small value to avoid dividing by zero
+	"""
+	def __init__(self, beta, learning_rate=0.0000009):
+		self.learning_rate = learning_rate
+		self.beta = beta
+		# exponentially weighted average of past squares of gradients
+		self.sdw = None
+		self.sdb = None
+
+	def update_weights(self, W,  dW):
+		if self.sdw==None:
+			self.sdw = np.zeros_like(W)
+
+		self.sdw = self.beta*self.sdw + (1-self.beta)*np.power(dW, 2)
+		return W - self.learning_rate*dW/np.sqrt(self.sdw+0.000005)
+
+	def update_bias(self, b,  db):
+		if self.sdb==None:
+			self.sdb = np.zeros_like(b)
+
+		self.sdb = self.beta*self.sdb + (1-self.beta)*np.power(db, 2)
+		return b - self.learning_rate*db/np.sqrt(self.sdb+0.000005)
+
+
+
+class Adam:
+	"""
+		vdw - the exponentially weighted average of past gradients
+		sdw - the exponentially weighted average of past squares of gradients
+		beta1 - hyperparameter to be tuned
+		beta2 - hyperparameter to be tuned
+		dW - cost gradient with respect to current layer
+		W - the weight matrix (parameter to be updated)
+		ϵ(0.000005) - very small value to avoid dividing by zero
+	"""
+	def __init__(self, learning_rate, beta1, beta2):
+		self.learning_rate = learning_rate
+		self.beta1 = beta1
+		self.beta2 = beta2
+		self.vdw = None
+		self.sdw = None
+		self.vdb = None
+		self.sdb = None
+
+	def update_weights(self, W, dW):
+		if self.vdw is None:
+			self.vdw = np.zeros_like(dW)
+			self.sdw = np.zeros_like(dW)
+
+		self.vdw = self.beta1*self.vdw + (1-self.beta1)*dW
+		self.sdw = self.beta2*self.sdw + (1-self.beta2)*np.power(dW, 2)
+
+		vdw_corr = self.vdw / np.power((1-self.beta1), 1)
+		sdw_corr = self.sdw / np.power((1-self.beta2), 1)
+
+		return W - self.learning_rate*vdw_corr/np.sqrt(sdw_corr+0.000005)
+
+	def update_bias(self, b, db):
+		if self.vdb is None:
+			self.vdb = np.zeros_like(db)
+			self.sdb = np.zeros_like(db)
+
+		self.vdb = self.beta1*self.vdb + (1-self.beta1)*db
+		self.sdb = self.beta2*self.sdb + (1-self.beta2)*np.power(db, 2)
+
+		vdb_corr = self.vdb / np.power((1-self.beta1), 1)
+		sdb_corr = self.sdb / np.power((1-self.beta2), 1)
+
+		return b - self.learning_rate*vdb_corr/np.sqrt(sdb_corr+0.000005)

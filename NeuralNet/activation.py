@@ -18,7 +18,8 @@ class sigmoid:
 		"""
 		d(sigmoid(x)) = 1/(1 + exp(-x)) - 1/(1 + exp(-x))^2 
 		"""
-		return self.__call__(z)*(1-self.__call__(z))
+		p = self.__call__(z)
+		return p*(1-p)
 
 class LeakyReLU:
 	def __init__(self, alpha=0.01):
@@ -27,5 +28,13 @@ class LeakyReLU:
 	def __call__(self, z):
 		return np.maximum(self.alpha*z, z)
 
-	def gradient(self, dA, z):
+	def gradient(self, z):
 		return np.where(z>0, 1, self.alpha)
+
+class softmax:
+	def __call__(self, z):
+		return np.exp(z)/np.sum(np.exp(z))
+
+	def gradient(self, z):
+		p = self.__call__(z)
+		return p*(1-p)
